@@ -13,12 +13,6 @@ uploaded_file = st.file_uploader(
     type=["csv"]
 )
 
-# -------------------- MODEL SELECTION --------------------
-model_name = st.selectbox(
-    "Select Machine Learning Model",
-    ["Logistic Regression"]
-)
-
 # -------------------- PROCESS --------------------
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
@@ -43,12 +37,12 @@ if uploaded_file is not None:
     # Fill missing values
     X = X.fillna(0)
 
-    # Load model and scaler
+    # Load trained scaler and model
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     scaler = joblib.load(os.path.join(BASE_DIR, "model", "scaler.pkl"))
     model = joblib.load(os.path.join(BASE_DIR, "model", "logistic_regression.pkl"))
 
-    # Scale and predict
+    # Predict
     X_scaled = scaler.transform(X)
     predictions = model.predict(X_scaled)
 
@@ -143,6 +137,7 @@ st.dataframe(cm_df)
 else:
 
 st.info("Please upload test data CSV file.")
+
 
 
 
