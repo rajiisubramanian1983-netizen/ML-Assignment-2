@@ -4,67 +4,45 @@ import os
 import joblib
 from sklearn.preprocessing import LabelEncoder
 
-# -------------------- APP TITLE --------------------
 st.title("Bank Customer Churn Prediction")
 
-# -------------------- FILE UPLOAD --------------------
-uploaded_file = st.file_uploader(
-    "Upload Test Data CSV file",
-    type=["csv"]
-)
+uploaded_file = st.file_uploader("Upload test data CSV", type=["csv"])
 
-# -------------------- PROCESS --------------------
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
-    st.subheader("Uploaded Data Preview")
-    st.dataframe(df.head())
-
-    # Drop ID columns if present
     for col in ["RowNumber", "CustomerId", "Surname"]:
         if col in df.columns:
             df.drop(col, axis=1, inplace=True)
 
-    # Separate features
     X = df.drop(columns=["Exited"], errors="ignore")
 
-    # Encode categorical columns
     if "Geography" in X.columns:
         X["Geography"] = LabelEncoder().fit_transform(X["Geography"])
     if "Gender" in X.columns:
         X["Gender"] = LabelEncoder().fit_transform(X["Gender"])
 
-    # Fill missing values
     X = X.fillna(0)
 
-    # Load trained scaler and model
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     scaler = joblib.load(os.path.join(BASE_DIR, "model", "scaler.pkl"))
     model = joblib.load(os.path.join(BASE_DIR, "model", "logistic_regression.pkl"))
 
-    # Predict
     X_scaled = scaler.transform(X)
-    predictions = model.predict(X_scaled)
+    df["Churn_Prediction"] = model.predict(X_scaled)
 
-    df["Churn_Prediction"] = predictions
-
-    st.success("Prediction completed successfully!")
-
-    st.subheader("Prediction Results")
+    st.success("Prediction completed")
     st.dataframe(df.head())
 
-    # Download results
-    result_csv = df.to_csv(index=False).encode("utf-8")
+    csv = df.to_csv(index=False).encode("utf-8")
     st.download_button(
-        label="Download Prediction Results",
-        data=result_csv,
-        file_name="churn_predictions.csv",
-        mime="text/csv"
+        "Download predictions",
+        csv,
+        "churn_predictions.csv",
+        "text/csv"
     )
-
 else:
-    st.info("Please upload a test data CSV file.")
-
+    st.info("Please upload a CSV file.")
 # -------------------- MODEL SELECTION --------------------
 if model_name == "Logistic Regression":
 model = LogisticRegression(max_iter=1000)
@@ -137,6 +115,7 @@ st.dataframe(cm_df)
 else:
 
 st.info("Please upload test data CSV file.")
+
 
 
 
