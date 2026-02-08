@@ -21,36 +21,35 @@ from sklearn.metrics import (
     roc_auc_score
 )
 
-# -------------------- TITLE --------------------
+# ==================== APP TITLE ====================
 st.title("Bank Customer Churn Prediction")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# -------------------- STEP 1: DOWNLOAD TEST DATA --------------------
+# ==================== STEP 1: DOWNLOAD TEST DATA ====================
 st.subheader("Step 1: Download Test Data")
 
-test_data_path = os.path.join(BASE_DIR, "test_data.csv")
-
-if os.path.exists(test_data_path):
-    with open(test_data_path, "rb") as f:
+test_file = os.path.join(BASE_DIR, "test_data.csv")
+if os.path.exists(test_file):
+    with open(test_file, "rb") as f:
         st.download_button(
-            label="Download Test Data",
-            data=f,
-            file_name="test_data.csv",
-            mime="text/csv"
+            "Download Test Data",
+            f,
+            "test_data.csv",
+            "text/csv"
         )
 else:
-    st.warning("test_data.csv not found in project folder.")
+    st.info("test_data.csv not found (this is okay if teacher did not require it).")
 
-# -------------------- STEP 2: UPLOAD TEST DATA --------------------
-st.subheader("Step 2: Upload Test Data")
+# ==================== STEP 2: UPLOAD DATA ====================
+st.subheader("Step 2: Upload Dataset")
 
 uploaded_file = st.file_uploader(
     "Upload CSV file (must contain 'Exited' column)",
     type=["csv"]
 )
 
-# -------------------- STEP 3: MODEL SELECTION --------------------
+# ==================== STEP 3: MODEL SELECTION ====================
 st.subheader("Step 3: Select Machine Learning Model")
 
 model_name = st.selectbox(
@@ -65,7 +64,7 @@ model_name = st.selectbox(
     ]
 )
 
-# -------------------- STEP 4: PROCESS --------------------
+# ==================== STEP 4: PROCESS ====================
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
@@ -73,119 +72,106 @@ if uploaded_file is not None:
     st.dataframe(df.head())
 
     if "Exited" not in df.columns:
-        st.error("The uploaded CSV must contain an 'Exited' column.")
-    else:
-        # Drop ID columns if present
-        for col in ["RowNumber", "CustomerId", "Surname"]:
-            if col in df.columns:
-                df.drop(col, axis=1, inplace=True)
+        st.error("Dataset must contain an 'Exited' column.")
+        st.stop()
 
-        X = df.drop("Exited", axis=1)
-        y = df["Exited"]
+    # Drop ID columns
+    for col in ["RowNumber", "CustomerId", "Surname"]:
+        if col in df.columns:
+            df.drop(col, axis=1, inplace=True)
 
-        # Encode categorical variables
-        if "Geography" in X.columns:
-            X["Geography"] = LabelEncoder().fit_transform(X["Geography"])
-        if "Gender" in X.columns:
-            X["Gender"] = LabelEncoder().fit_transform(X["Gender"])
+    X = df.drop("Exited", axis=1)
+    y = df["Exited"]
 
-        # Train-test split (ASSIGNMENT REQUIRED)
-        X_train, X_test, y_train, y_test = train_test_split(
-            X,
-            y,
-            test_size=0.2,
-            random_state=42,
-           #stratify=y
+    # Check class count (IMPORTANT)
+    if y.nunique() < 2:
+        st.error(
+            "The dataset contains only one class in 'Exited'. "
+            "Model training requires at least two classes."
         )
-st.write("Exited value counts:")
-st.write(y.value_counts())
+        st.stop()
 
-if y.nunique() < 2:
-    st.error(
-        "The uploaded dataset contains only one class in 'Exited'. "
-        "Model training requires at least two classes (0 and 1). "
-        "Please upload the full training dataset."
+    # Encode categorical columns
+    if "Geography" in X.columns:
+        X["Geography"] = LabelEncoder().fit_transform(X["Geography"])
+    if "Gender" in X.columns:
+        X["Gender"] = LabelEncoder().fit_transform(X["Gender"])
+
+    # ==================== TRAIN-TEST SPLIT ====================
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+        random_state=42
     )
-    st.stop()
 
-        # Scaling (for LR, KNN, NB)
-        scaler = StandardScaler()
-        X_train_scaled = scaler.fit_transform(X_train)
-        X_test_scaled = scaler.transform(X_test)
+    # ==================== SCALING ====================
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
 
-        # -------------------- MODEL TRAINING --------------------
-        if model_name == "Logistic Regression":
-            model = LogisticRegression(max_iter=1000)
-            model.fit(X_train_scaled, y_train)
-            y_pred = model.predict(X_test_scaled)
-            y_prob = model.predict_proba(X_test_scaled)[:, 1]
+    # ==================== MODEL TRAINING ====================
+    if model_name == "Logistic Regression":
+        model = LogisticRegression(max_iter=1000)
+        model.fit(X_train_scaled, y_train)
+        y_pred = model.predict(X_test_scaled)
+        y_prob = model.predict_proba(X_test_scaled)[:, 1]
 
-        elif model_name == "Decision Tree":
-            model = DecisionTreeClassifier(random_state=42)
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
-            y_prob = model.predict_proba(X_test)[:, 1]
+    elif model_name == "Decision Tree":
+        model = DecisionTreeClassifier(random_state=42)
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        y_prob = model.predict_proba(X_test)[:, 1]
 
-        elif model_name == "KNN":
-            model = KNeighborsClassifier(n_neighbors=5)
-            model.fit(X_train_scaled, y_train)
-            y_pred = model.predict(X_test_scaled)
-            y_prob = model.predict_proba(X_test_scaled)[:, 1]
+    elif model_name == "KNN":
+        model = KNeighborsClassifier(n_neighbors=5)
+        model.fit(X_train_scaled, y_train)
+        y_pred = model.predict(X_test_scaled)
+        y_prob = model.predict_proba(X_test_scaled)[:, 1]
 
-        elif model_name == "Naive Bayes":
-            model = GaussianNB()
-            model.fit(X_train_scaled, y_train)
-            y_pred = model.predict(X_test_scaled)
-            y_prob = model.predict_proba(X_test_scaled)[:, 1]
+    elif model_name == "Naive Bayes":
+        model = GaussianNB()
+        model.fit(X_train_scaled, y_train)
+        y_pred = model.predict(X_test_scaled)
+        y_prob = model.predict_proba(X_test_scaled)[:, 1]
 
-        elif model_name == "Random Forest":
-            model = RandomForestClassifier(n_estimators=100, random_state=42)
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
-            y_prob = model.predict_proba(X_test)[:, 1]
+    elif model_name == "Random Forest":
+        model = RandomForestClassifier(n_estimators=100, random_state=42)
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        y_prob = model.predict_proba(X_test)[:, 1]
 
-        elif model_name == "XGBoost":
-            model = XGBClassifier(
-                use_label_encoder=False,
-                eval_metric="logloss",
-                random_state=42
-            )
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
-            y_prob = model.predict_proba(X_test)[:, 1]
-
-        # -------------------- METRICS --------------------
-        st.subheader(f"Evaluation Metrics ({model_name})")
-
-        st.write("Accuracy:", round(accuracy_score(y_test, y_pred), 4))
-        st.write("AUC:", round(roc_auc_score(y_test, y_prob), 4))
-        st.write("Precision:", round(precision_score(y_test, y_pred), 4))
-        st.write("Recall:", round(recall_score(y_test, y_pred), 4))
-        st.write("F1 Score:", round(f1_score(y_test, y_pred), 4))
-        st.write("MCC:", round(matthews_corrcoef(y_test, y_pred), 4))
-
-        # -------------------- CONFUSION MATRIX --------------------
-        st.subheader("Confusion Matrix")
-
-        cm = confusion_matrix(y_test, y_pred)
-        cm_df = pd.DataFrame(
-            cm,
-            columns=["Predicted No Churn", "Predicted Churn"],
-            index=["Actual No Churn", "Actual Churn"]
+    elif model_name == "XGBoost":
+        model = XGBClassifier(
+            use_label_encoder=False,
+            eval_metric="logloss",
+            random_state=42
         )
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+        y_prob = model.predict_proba(X_test)[:, 1]
 
-        st.dataframe(cm_df)
+    # ==================== METRICS ====================
+    st.subheader(f"Evaluation Metrics ({model_name})")
+
+    st.write("Accuracy:", round(accuracy_score(y_test, y_pred), 4))
+    st.write("AUC:", round(roc_auc_score(y_test, y_prob), 4))
+    st.write("Precision:", round(precision_score(y_test, y_pred), 4))
+    st.write("Recall:", round(recall_score(y_test, y_pred), 4))
+    st.write("F1 Score:", round(f1_score(y_test, y_pred), 4))
+    st.write("MCC:", round(matthews_corrcoef(y_test, y_pred), 4))
+
+    # ==================== CONFUSION MATRIX ====================
+    st.subheader("Confusion Matrix")
+
+    cm = confusion_matrix(y_test, y_pred)
+    cm_df = pd.DataFrame(
+        cm,
+        index=["Actual No Churn", "Actual Churn"],
+        columns=["Predicted No Churn", "Predicted Churn"]
+    )
+
+    st.dataframe(cm_df)
 
 else:
-    st.info("Please upload test data CSV file.")
-
-
-
-
-
-
-
-
-
-
-
+    st.info("Please upload a dataset to continue.")
