@@ -97,7 +97,7 @@ if uploaded_file is not None:
             random_state=42,
            #stratify=y
         )
-        st.write("Exited value counts:")
+st.write("Exited value counts:")
 st.write(y.value_counts())
 
 if y.nunique() < 2:
@@ -178,6 +178,7 @@ if y.nunique() < 2:
 
 else:
     st.info("Please upload test data CSV file.")
+
 
 
 
