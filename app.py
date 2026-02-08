@@ -28,13 +28,21 @@ st.title("Bank Customer Churn Prediction")
 
 st.subheader("Step 1: Download Test Data")
 
-with open("data/test_sample.csv", "rb") as f:
-    st.download_button(
-        label="Download Test Data CSV",
-        data=f,
-        file_name="test_data.csv",
-        mime="text/csv"
-    )
+import streamlit as st
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+file_path = os.path.join(BASE_DIR, "test_data.csv")
+
+if os.path.exists(file_path):
+    with open(file_path, "rb") as f:
+        st.download_button(
+            label="Download Test Data",
+            data=f,
+            file_name="test_data.csv",
+            mime="text/csv"
+        )
+else:
+    st.error("test_data.csv not found. Please check the file path.")
 
 st.subheader("Step 2: Upload Test Data")
 
@@ -165,3 +173,4 @@ if uploaded_file is not None:
 else:
 
     st.info("Please upload test data CSV file.")
+
