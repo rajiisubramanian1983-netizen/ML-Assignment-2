@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import os
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
@@ -20,16 +21,40 @@ from sklearn.metrics import (
     roc_auc_score
 )
 
-# -------------------- UI --------------------
+# -------------------- TITLE --------------------
 st.title("Bank Customer Churn Prediction")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# -------------------- STEP 1: DOWNLOAD TEST DATA --------------------
+st.subheader("Step 1: Download Test Data")
+
+test_data_path = os.path.join(BASE_DIR, "test_data.csv")
+
+if os.path.exists(test_data_path):
+    with open(test_data_path, "rb") as f:
+        st.download_button(
+            label="Download Test Data",
+            data=f,
+            file_name="test_data.csv",
+            mime="text/csv"
+        )
+else:
+    st.warning("test_data.csv not found in project folder.")
+
+# -------------------- STEP 2: UPLOAD TEST DATA --------------------
+st.subheader("Step 2: Upload Test Data")
 
 uploaded_file = st.file_uploader(
     "Upload CSV file (must contain 'Exited' column)",
     type=["csv"]
 )
 
+# -------------------- STEP 3: MODEL SELECTION --------------------
+st.subheader("Step 3: Select Machine Learning Model")
+
 model_name = st.selectbox(
-    "Select Machine Learning Model",
+    "Choose a model",
     [
         "Logistic Regression",
         "Decision Tree",
@@ -40,15 +65,15 @@ model_name = st.selectbox(
     ]
 )
 
-# -------------------- PROCESS --------------------
+# -------------------- STEP 4: PROCESS --------------------
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
-    st.subheader("Dataset Preview")
+    st.subheader("Uploaded Data Preview")
     st.dataframe(df.head())
 
     if "Exited" not in df.columns:
-        st.error("CSV must contain 'Exited' column")
+        st.error("The uploaded CSV must contain an 'Exited' column.")
     else:
         # Drop ID columns if present
         for col in ["RowNumber", "CustomerId", "Surname"]:
@@ -58,7 +83,7 @@ if uploaded_file is not None:
         X = df.drop("Exited", axis=1)
         y = df["Exited"]
 
-        # Encode categorical columns
+        # Encode categorical variables
         if "Geography" in X.columns:
             X["Geography"] = LabelEncoder().fit_transform(X["Geography"])
         if "Gender" in X.columns:
@@ -73,12 +98,12 @@ if uploaded_file is not None:
             stratify=y
         )
 
-        # Scaling (needed for LR, KNN, NB)
+        # Scaling (for LR, KNN, NB)
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
 
-        # -------------------- MODEL SELECTION --------------------
+        # -------------------- MODEL TRAINING --------------------
         if model_name == "Logistic Regression":
             model = LogisticRegression(max_iter=1000)
             model.fit(X_train_scaled, y_train)
