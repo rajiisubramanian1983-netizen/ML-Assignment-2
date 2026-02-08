@@ -24,9 +24,9 @@ if uploaded_file is not None:
 
     X = X.fillna(0)
 
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    scaler = joblib.load(os.path.join(BASE_DIR, "model", "scaler.pkl"))
-    model = joblib.load(os.path.join(BASE_DIR, "model", "logistic_regression.pkl"))
+    base = os.path.dirname(os.path.abspath(__file__))
+    model = joblib.load(os.path.join(base, "model", "logistic_regression.pkl"))
+    scaler = joblib.load(os.path.join(base, "model", "scaler.pkl"))
 
     X_scaled = scaler.transform(X)
     df["Churn_Prediction"] = model.predict(X_scaled)
@@ -34,10 +34,9 @@ if uploaded_file is not None:
     st.success("Prediction completed")
     st.dataframe(df.head())
 
-    csv = df.to_csv(index=False).encode("utf-8")
     st.download_button(
         "Download predictions",
-        csv,
+        df.to_csv(index=False),
         "churn_predictions.csv",
         "text/csv"
     )
@@ -115,6 +114,7 @@ st.dataframe(cm_df)
 else:
 
 st.info("Please upload test data CSV file.")
+
 
 
 
