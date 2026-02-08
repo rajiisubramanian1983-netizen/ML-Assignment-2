@@ -23,8 +23,25 @@ from sklearn.metrics import (
 # -------------------- UI --------------------
 st.title("Bank Customer Churn Prediction")
 
-uploaded_file = st.file_uploader("Upload CSV file (Test Data)", type=["csv"])
+#uploaded_file = st.file_uploader("Upload CSV file (Test Data)", type=["csv"])
+st.title("Bank Customer Churn Prediction")
 
+st.subheader("Step 1: Download Test Data")
+
+with open("data/test_sample.csv", "rb") as f:
+    st.download_button(
+        label="Download Test Data CSV",
+        data=f,
+        file_name="test_data.csv",
+        mime="text/csv"
+    )
+
+st.subheader("Step 2: Upload Test Data")
+
+uploaded_file = st.file_uploader(
+    "Upload the downloaded test CSV file",
+    type=["csv"]
+)
 model_name = st.selectbox(
     "Select Machine Learning Model",
     [
@@ -42,12 +59,12 @@ if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
     # Download test data
-    st.download_button(
-        label="Download Test Data (CSV)",
-        data=uploaded_file,
-        file_name="test_data.csv",
-        mime="text/csv"
-    )
+    #st.download_button(
+      #  label="Download Test Data (CSV)",
+       # data=uploaded_file,
+       # file_name="test_data.csv",
+       # mime="text/csv"
+ #   )
 
     if "Exited" not in df.columns:
         st.error("CSV must contain 'Exited' column")
@@ -146,4 +163,5 @@ if uploaded_file is not None:
         st.dataframe(cm_df)
 
 else:
+
     st.info("Please upload test data CSV file.")
