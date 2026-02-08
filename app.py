@@ -26,7 +26,6 @@ if uploaded_file is not None:
     st.subheader("Uploaded Data Preview")
     st.dataframe(df.head())
 
-    # -------------------- CLEAN DATA --------------------
     # Drop ID columns if present
     for col in ["RowNumber", "CustomerId", "Surname"]:
         if col in df.columns:
@@ -44,13 +43,12 @@ if uploaded_file is not None:
     # Fill missing values
     X = X.fillna(0)
 
-    # -------------------- LOAD MODEL & SCALER --------------------
+    # Load model and scaler
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
     scaler = joblib.load(os.path.join(BASE_DIR, "model", "scaler.pkl"))
     model = joblib.load(os.path.join(BASE_DIR, "model", "logistic_regression.pkl"))
 
-    # -------------------- PREDICTION --------------------
+    # Scale and predict
     X_scaled = scaler.transform(X)
     predictions = model.predict(X_scaled)
 
@@ -61,7 +59,7 @@ if uploaded_file is not None:
     st.subheader("Prediction Results")
     st.dataframe(df.head())
 
-    # -------------------- DOWNLOAD RESULTS --------------------
+    # Download results
     result_csv = df.to_csv(index=False).encode("utf-8")
     st.download_button(
         label="Download Prediction Results",
@@ -146,5 +144,6 @@ else:
 else:
 
     st.info("Please upload test data CSV file.")
+
 
 
