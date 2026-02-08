@@ -97,6 +97,16 @@ if uploaded_file is not None:
             random_state=42,
            #stratify=y
         )
+        st.write("Exited value counts:")
+st.write(y.value_counts())
+
+if y.nunique() < 2:
+    st.error(
+        "The uploaded dataset contains only one class in 'Exited'. "
+        "Model training requires at least two classes (0 and 1). "
+        "Please upload the full training dataset."
+    )
+    st.stop()
 
         # Scaling (for LR, KNN, NB)
         scaler = StandardScaler()
