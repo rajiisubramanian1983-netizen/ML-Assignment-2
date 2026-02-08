@@ -71,8 +71,7 @@ if uploaded_file is not None:
 else:
     st.info("Please upload a test data CSV file.")
 
-       
-        # -------------------- MODEL SELECTION --------------------
+       # -------------------- MODEL SELECTION --------------------
         if model_name == "Logistic Regression":
             model = LogisticRegression(max_iter=1000)
             model.fit(X_train_scaled, y_train)
@@ -144,6 +143,7 @@ else:
 else:
 
     st.info("Please upload test data CSV file.")
+
 
 
 
