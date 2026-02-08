@@ -95,7 +95,7 @@ if uploaded_file is not None:
             y,
             test_size=0.2,
             random_state=42,
-            stratify=y
+           #stratify=y
         )
 
         # Scaling (for LR, KNN, NB)
@@ -168,6 +168,7 @@ if uploaded_file is not None:
 
 else:
     st.info("Please upload test data CSV file.")
+
 
 
 
