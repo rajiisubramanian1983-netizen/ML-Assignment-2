@@ -113,16 +113,26 @@ if uploaded_file is not None:
         y,
         test_size=0.2,
         random_state=42,
-        stratify=y,  # keep class balance in train and test
+        # stratify=y,  # keep class balance in train and test
     )
+# Show class distribution after split
+st.write("Class counts in train:", y_train.value_counts())
+st.write("Class counts in test:", y_test.value_counts())
 
+# If any split has only one class, stop with a friendly error
+if y_train.nunique() < 2 or y_test.nunique() < 2:
+    st.error(
+        "After splitting, train or test has only one class in 'Exited'. "
+        "Please use a larger dataset with both 0 and 1 values in 'Exited'."
+    )
+    st.stop()
     # Extra safety: ensure train set still has both classes
-    if y_train.nunique() < 2:
-        st.error(
-            "After train-test split, the training set has only one class in 'Exited'. "
-            "Please upload a dataset with enough churned and non-churned customers."
-        )
-        st.stop()
+    # if y_train.nunique() < 2:
+        # st.error(
+           # "After train-test split, the training set has only one class in 'Exited'. "
+           # "Please upload a dataset with enough churned and non-churned customers."
+       # )
+        # st.stop()
 
     # Optional: show class distribution (helpful while debugging)
     # st.write("Class counts in full data:", y.value_counts())
@@ -200,3 +210,4 @@ if uploaded_file is not None:
 
 else:
     st.info("Please upload a dataset to continue.")
+
