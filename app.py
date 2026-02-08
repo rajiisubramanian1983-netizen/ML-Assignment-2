@@ -38,7 +38,7 @@ test_file = os.path.join(BASE_DIR, "test_data.csv")
 if os.path.exists(test_file):
     with open(test_file, "rb") as f:
         st.download_button(
-            "Download Test Data",
+            "Download Test Data (CSV)",
             f,
             "test_data.csv",
             "text/csv",
@@ -55,7 +55,7 @@ uploaded_file = st.file_uploader(
     type=["csv"],
 )
 
-# ==================== STEP 3: MODEL SELECTION ====================
+# ==================== STEP 3: SELECT MODEL ====================
 
 st.subheader("Step 3: Select Machine Learning Model")
 
@@ -83,6 +83,9 @@ if uploaded_file is not None:
     if "Exited" not in df.columns:
         st.error("Dataset must contain an 'Exited' column.")
         st.stop()
+
+    # Drop rows where Exited is NaN
+    df = df.dropna(subset=["Exited"])
 
     # Drop ID-like columns if present
     for col in ["RowNumber", "CustomerId", "Surname"]:
@@ -113,31 +116,16 @@ if uploaded_file is not None:
         y,
         test_size=0.2,
         random_state=42,
-        # stratify=y,  # keep class balance in train and test
+        stratify=y,
     )
-# Show class distribution after split
-st.write("Class counts in train:", y_train.value_counts())
-st.write("Class counts in test:", y_test.value_counts())
 
-# If any split has only one class, stop with a friendly error
-if y_train.nunique() < 2 or y_test.nunique() < 2:
-    st.error(
-        "After splitting, train or test has only one class in 'Exited'. "
-        "Please use a larger dataset with both 0 and 1 values in 'Exited'."
-    )
-    st.stop()
-    # Extra safety: ensure train set still has both classes
-    # if y_train.nunique() < 2:
-        # st.error(
-           # "After train-test split, the training set has only one class in 'Exited'. "
-           # "Please upload a dataset with enough churned and non-churned customers."
-       # )
-        # st.stop()
-
-    # Optional: show class distribution (helpful while debugging)
-    # st.write("Class counts in full data:", y.value_counts())
-    # st.write("Class counts in train:", y_train.value_counts())
-    # st.write("Class counts in test:", y_test.value_counts())
+    # Safety check
+    if y_train.nunique() < 2 or y_test.nunique() < 2:
+        st.error(
+            "After splitting, train or test has only one class in 'Exited'. "
+            "Please use a larger dataset with both 0 and 1 values in 'Exited'."
+        )
+        st.stop()
 
     # ==================== SCALING ====================
 
@@ -207,7 +195,5 @@ if y_train.nunique() < 2 or y_test.nunique() < 2:
         columns=["Predicted No Churn", "Predicted Churn"],
     )
     st.dataframe(cm_df)
-
 else:
     st.info("Please upload a dataset to continue.")
-
