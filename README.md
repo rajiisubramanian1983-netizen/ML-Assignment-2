@@ -63,3 +63,9 @@ XGBoost (Ensemble)	Achieves the best overall performance with the highest AUC, F
 ##  GitHub Repository
 
  [ML-Assignment-2 on GitHub](https://github.com/rajiisubramanian1983-netizen/ML-Assignment-2)
+
+ ScreenShot
+
+ <img width="940" height="461" alt="image" src="https://github.com/user-attachments/assets/6f0cca87-9434-4170-9b5b-69e005f75363" />
+
+
